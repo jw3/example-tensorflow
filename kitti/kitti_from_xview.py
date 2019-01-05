@@ -122,7 +122,7 @@ def shuffle_images_and_boxes_classes(im,box,cls):
     return im[perm], out_b, out_c
 
 
-def write_kitti_labels(img, boxes, class_num):
+def write_kitti_labels(img, boxes, class_num, labels):
     """
     Converts a single image with respective boxes into a TFExample.  Multiple TFExamples make up a TFRecord.
 
@@ -145,9 +145,9 @@ def write_kitti_labels(img, boxes, class_num):
         ymin = int(box[1])
         xmax = int(box[2])
         ymax = int(box[3])
-        clazz = int(class_num[ind])
 
         if xmin + ymin + xmax + ymax > 0:
+            clazz = labels[int(class_num[ind])]
             kitti_text.append("{} 0.0 0 0.0 {} {} {} {} 0.0 0.0 0.0 0.0 0.0 0.0 0.0".format(clazz, xmin, ymin, xmax, ymax))
 
     # example = tf.train.Example(features=tf.train.Features(feature={
@@ -184,6 +184,11 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
+
+    labels = {}
+    with open('xview_class_labels.txt') as f:
+        for row in csv.reader(f):
+            labels[int(row[0].split(":")[0])] = row[0].split(":")[1]
 
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
@@ -226,7 +231,7 @@ if __name__ == "__main__":
             for idx, image in enumerate(im):
                 istest = idx < split_ind
 
-                tf_example = write_kitti_labels(image,box[idx],classes_final[idx])
+                tf_example = write_kitti_labels(image,box[idx],classes_final[idx],labels)
 
                 #Check to make sure that the TF_Example has valid bounding boxes.
                 #If there are no valid bounding boxes, then don't save the image to the TFRecord.
@@ -279,7 +284,7 @@ if __name__ == "__main__":
                                 Image.fromarray(newimg).save('process/img_%s_%s_%s.png'%(name,extra,it[0]))
 
                             if len(nb) > 0:
-                                tf_example = write_kitti_labels(newimg,nb,classes_final[idx])
+                                tf_example = write_kitti_labels(newimg,nb,classes_final[idx],labels)
                                 writer.write(tf_example.SerializeToString())
 
                                 #Don't count augmented chips for chip indices
