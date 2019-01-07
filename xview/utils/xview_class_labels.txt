@@ -48,9 +48,11 @@
 72:Shed
 73:Building
 74:Aircraft Hangar
+75:dontcare
 76:Damaged Building
 77:Facility
 79:Construction Site
+82:dontcare
 83:Vehicle Lot
 84:Helipad
 86:Storage Tank
