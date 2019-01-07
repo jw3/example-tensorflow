@@ -238,7 +238,3 @@ item {
   id: 60
   name: 'tower'
 }
-item {
-  id: 61
-  name: 'dontcare'
-}
