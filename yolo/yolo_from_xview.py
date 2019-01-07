@@ -185,6 +185,8 @@ if __name__ == "__main__":
                         help="A boolean value whether or not to use augmentation")
     parser.add_argument("-c","--classes", type=str, default='',
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
+    parser.add_argument("-x","--xview_labels", type=str, default='xview_class_labels.txt',
+                        help="Path to xview class labels file")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -192,7 +194,7 @@ if __name__ == "__main__":
 
     filterc = args.classes.split(',') if args.classes else []
     labels = {}
-    with open('xview_class_labels.txt') as f:
+    with open(args.xview_labels) as f:
         for row in csv.reader(f):
             splits = row[0].split(":")
             if not filterc or splits[0] in filterc:
