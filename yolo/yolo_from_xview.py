@@ -201,7 +201,7 @@ if __name__ == "__main__":
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
     #res = [(500,500),(400,400),(300,300),(200,200)]
-    res = [(300,300)]
+    res = [(416,416)]
 
     AUGMENT = args.augment
     SAVE_IMAGES = False
@@ -210,6 +210,7 @@ if __name__ == "__main__":
     train_chips = 0
     test_chips = 0
     skip_chips = 0
+    images_list = []
 
     #Parameters
     max_chips_per_res = 100000
@@ -253,9 +254,10 @@ if __name__ == "__main__":
                     else:
                         train_chips += 1
 
-                    prefix = "val" if istest else "train"
-                    writer = open("%s/labels/%s.txt" % (prefix, str(idx).rjust(6, '0')), "w")
-                    Image.fromarray(image).save('%s/images/%s.png'%(prefix, str(idx).rjust(6, '0')))
+                    writer = open("labels/%s.txt" % (str(idx).rjust(6, '0')), "w")
+                    img_file = 'images/%s.png'%(str(idx).rjust(6, '0'))
+                    Image.fromarray(image).save(img_file)
+                    images_list.append(img_file)
 
                     writer.write(tf_example)
 
@@ -315,6 +317,9 @@ if __name__ == "__main__":
         logging.info("Tot Box: %d" % tot_box)
         logging.info("Chips: %d" % ind_chips)
         logging.info("Skipped Chips: %d" % skip_chips)
+
+    with open('training_list.txt', 'w') as f:
+        f.write('\n'.join(images_list))
 
     logging.info("saved: %d train chips" % train_chips)
     logging.info("saved: %d test chips" % test_chips)
