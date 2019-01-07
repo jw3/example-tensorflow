@@ -139,16 +139,16 @@ def write_yolo_labels(img, boxes, class_num, labels):
     width = img.shape[0]
     height = img.shape[1]
 
-    kitti_text = []
+    yolo_text = []
     for ind,box in enumerate(boxes):
         xmin = int(box[0])
         ymin = int(box[1])
         w = int(box[2]) - xmin
         h = int(box[3]) - ymin
 
-        if xmin + ymin + xmax + ymax > 0:
+        if xmin + ymin + w + h > 0:
             clazz = labels[int(class_num[ind])]
-            kitti_text.append("{} {} {} {} {}".format(clazz, xmin, ymin, w, h))
+            yolo_text.append("{} {} {} {} {}".format(clazz, xmin, ymin, w, h))
 
     # example = tf.train.Example(features=tf.train.Features(feature={
     #     'image/height': int64_feature(height),
@@ -162,7 +162,7 @@ def write_yolo_labels(img, boxes, class_num, labels):
     #     'image/object/class/label': int64_list_feature(classes),
     # }))
 
-    return '\n'.join(kitti_text)
+    return '\n'.join(yolo_text)
 
 '''
 Datasets
@@ -231,7 +231,7 @@ if __name__ == "__main__":
             for idx, image in enumerate(im):
                 istest = idx < split_ind
 
-                tf_example = write_kitti_labels(image,box[idx],classes_final[idx],labels)
+                tf_example = write_yolo_labels(image,box[idx],classes_final[idx],labels)
 
                 #Check to make sure that the TF_Example has valid bounding boxes.
                 #If there are no valid bounding boxes, then don't save the image to the TFRecord.
@@ -284,7 +284,7 @@ if __name__ == "__main__":
                                 Image.fromarray(newimg).save('process/img_%s_%s_%s.png'%(name,extra,it[0]))
 
                             if len(nb) > 0:
-                                tf_example = write_kitti_labels(newimg,nb,classes_final[idx],labels)
+                                tf_example = write_yolo_labels(newimg,nb,classes_final[idx],labels)
                                 writer.write(tf_example.SerializeToString())
 
                                 #Don't count augmented chips for chip indices
