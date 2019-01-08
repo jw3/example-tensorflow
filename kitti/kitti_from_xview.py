@@ -141,6 +141,9 @@ def write_kitti_labels(img, boxes, class_num, labels):
 
     kitti_text = []
     for ind,box in enumerate(boxes):
+        if not class_num[ind] in labels:
+            continue
+
         xmin = int(box[0])
         ymin = int(box[1])
         xmax = int(box[2])
@@ -180,15 +183,22 @@ if __name__ == "__main__":
                         help="Output TFRecord suffix. Default suffix 't1' will output 'xview_train_t1.record' and 'xview_test_t1.record'")
     parser.add_argument("-a","--augment", type=bool, default=False,
                         help="A boolean value whether or not to use augmentation")
+    parser.add_argument("-c","--classes", type=str, default='',
+                        help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
+    parser.add_argument("-x","--xview_labels", type=str, default='xview_class_labels.txt',
+                        help="Path to xview class labels file")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    filterc = args.classes.split(',') if args.classes else []
     labels = {}
-    with open('xview_class_labels.txt') as f:
+    with open(args.xview_labels) as f:
         for row in csv.reader(f):
-            labels[int(row[0].split(":")[0])] = row[0].split(":")[1]
+            splits = row[0].split(":")
+            if not filterc or splits[0] in filterc:
+                labels[int(splits[0])] = splits[1]
 
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
@@ -246,8 +256,8 @@ if __name__ == "__main__":
                         train_chips += 1
 
                     prefix = "val" if istest else "train"
-                    writer = open("%s/labels/%s.txt" % (prefix, str(idx).rjust(6, '0')), "w")
-                    Image.fromarray(image).save('%s/images/%s.png'%(prefix, str(idx).rjust(6, '0')))
+                    writer = open("%s/labels/%s.txt" % (prefix, str(ind_chips).rjust(6, '0')), "w")
+                    Image.fromarray(image).save('%s/images/%s.png'%(prefix, str(ind_chips).rjust(6, '0')))
 
                     writer.write(tf_example)
 
