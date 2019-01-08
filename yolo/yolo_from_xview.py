@@ -136,22 +136,34 @@ def write_yolo_labels(img, boxes, class_num, labels):
     """
     encoded = tfr.convertToJpeg(img)
 
-    width = img.shape[0]
-    height = img.shape[1]
+    sw = img.shape[0]
+    sh = img.shape[1]
 
     yolo_text = []
     for ind,box in enumerate(boxes):
         if not class_num[ind] in labels:
             continue
 
+
         xmin = int(box[0])
         ymin = int(box[1])
-        w = int(box[2]) - xmin
-        h = int(box[3]) - ymin
+        xmax = int(box[2])
+        ymax = int(box[3])
 
-        if xmin + ymin + w + h > 0:
+        if xmin + ymin + xmax + ymax > 0:
+            dw = 1./sw
+            dh = 1./sh
+            xmid = (xmin + xmax)/2.0
+            ymid = (ymin + ymax)/2.0
+            w0 = xmax - xmin
+            h0 = ymax - ymin
+            x = xmid*dw
+            y = ymid*dh
+            w = w0*dw
+            h = h0*dh
+
             clazz = labels[int(class_num[ind])]
-            yolo_text.append("{} {} {} {} {}".format(clazz, xmin, ymin, w, h))
+            yolo_text.append("{} {} {} {} {}".format(clazz, x, y, w, h))
 
     # example = tf.train.Example(features=tf.train.Features(feature={
     #     'image/height': int64_feature(height),
