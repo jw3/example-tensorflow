@@ -53,7 +53,7 @@ tf.app.flags.DEFINE_string('data_dir', '', 'Location of root directory for the '
                                            '<data_dir>/training/label_2 (annotations) and'
                                            '<data_dir>/data_object_image_2/training/image_2'
                                            '(images).')
-tf.app.flags.DEFINE_string('output_path', '', 'Path to which TFRecord files'
+tf.app.flags.DEFINE_string('output_path', os.path.join(os.getcwd(), 'kitti'), 'Path to which TFRecord files'
                                               'will be written. The TFRecord with the training set'
                                               'will be located at: <output_path>_train.tfrecord.'
                                               'And the TFRecord with the validation set will be'
@@ -62,15 +62,13 @@ tf.app.flags.DEFINE_string('classes_to_use', 'car,pedestrian,dontcare',
                            'Comma separated list of class names that will be'
                            'used. Adding the dontcare class will remove all'
                            'bboxs in the dontcare regions.')
-tf.app.flags.DEFINE_string('label_map_path', 'data/kitti_label_map.pbtxt',
+tf.app.flags.DEFINE_string('label_map_path', 'xview-labels.pbtxt',
                            'Path to label map proto.')
-tf.app.flags.DEFINE_integer('validation_set_size', '500', 'Number of images to'
-                                                          'be used as a validation set.')
 FLAGS = tf.app.flags.FLAGS
 
 
 def convert_kitti_to_tfrecords(data_dir, output_path, classes_to_use,
-                               label_map_path, validation_set_size):
+                               label_map_path):
     """Convert the KITTI detection dataset to TFRecords.
 
     Args:
@@ -87,36 +85,38 @@ def convert_kitti_to_tfrecords(data_dir, output_path, classes_to_use,
         Adding dontcare class will remove all other bounding boxes that overlap
         with areas marked as dontcare regions.
       label_map_path: Path to label map proto
-      validation_set_size: How many images should be left as the validation set.
-        (Ffirst `validation_set_size` examples are selected to be in the
-        validation set).
     """
     label_map_dict = label_map_util.get_label_map_dict(label_map_path)
     train_count = 0
     val_count = 0
 
-    annotation_dir = os.path.join(data_dir,
-                                  'training',
-                                  'label_2')
+    train_annotation_dir = os.path.join(data_dir,
+                                  'train',
+                                  'labels')
 
-    image_dir = os.path.join(data_dir,
-                             'data_object_image_2',
-                             'training',
-                             'image_2')
+    train_image_dir = os.path.join(data_dir,
+                             'train',
+                             'images')
+
+    val_annotation_dir = os.path.join(data_dir,
+                                        'val',
+                                        'labels')
+
+    val_image_dir = os.path.join(data_dir,
+                                   'val',
+                                   'images')
 
     train_writer = tf.python_io.TFRecordWriter('%s_train.tfrecord'%
                                                output_path)
     val_writer = tf.python_io.TFRecordWriter('%s_val.tfrecord'%
                                              output_path)
 
-    images = sorted(tf.gfile.ListDirectory(image_dir))
-    for img_name in images:
+    for img_name in sorted(tf.gfile.ListDirectory(train_image_dir)):
         img_num = int(img_name.split('.')[0])
-        is_validation_img = img_num < validation_set_size
-        img_anno = read_annotation_file(os.path.join(annotation_dir,
+        img_anno = read_annotation_file(os.path.join(train_annotation_dir,
                                                      str(img_num).zfill(6)+'.txt'))
 
-        image_path = os.path.join(image_dir, img_name)
+        image_path = os.path.join(train_image_dir, img_name)
 
         # Filter all bounding boxes of this frame that are of a legal class, and
         # don't overlap with a dontcare region.
@@ -124,12 +124,24 @@ def convert_kitti_to_tfrecords(data_dir, output_path, classes_to_use,
         annotation_for_image = filter_annotations(img_anno, classes_to_use)
 
         example = prepare_example(image_path, annotation_for_image, label_map_dict)
-        if is_validation_img:
-            val_writer.write(example.SerializeToString())
-            val_count += 1
-        else:
-            train_writer.write(example.SerializeToString())
-            train_count += 1
+        train_writer.write(example.SerializeToString())
+        train_count += 1
+
+    for img_name in sorted(tf.gfile.ListDirectory(val_image_dir)):
+        img_num = int(img_name.split('.')[0])
+        img_anno = read_annotation_file(os.path.join(val_annotation_dir,
+                                                     str(img_num).zfill(6)+'.txt'))
+
+        image_path = os.path.join(val_image_dir, img_name)
+
+        # Filter all bounding boxes of this frame that are of a legal class, and
+        # don't overlap with a dontcare region.
+        # TODO(talremez) filter out targets that are truncated or heavily occluded.
+        annotation_for_image = filter_annotations(img_anno, classes_to_use)
+
+        example = prepare_example(image_path, annotation_for_image, label_map_dict)
+        val_writer.write(example.SerializeToString())
+        val_count += 1
 
     train_writer.close()
     val_writer.close()
@@ -303,8 +315,7 @@ def main(_):
         data_dir=FLAGS.data_dir,
         output_path=FLAGS.output_path,
         classes_to_use=FLAGS.classes_to_use.split(','),
-        label_map_path=FLAGS.label_map_path,
-        validation_set_size=FLAGS.validation_set_size)
+        label_map_path=FLAGS.label_map_path)
 
 if __name__ == '__main__':
     tf.app.run()
