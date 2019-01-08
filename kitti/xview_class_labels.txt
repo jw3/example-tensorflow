@@ -48,11 +48,9 @@
 72:shed
 73:building
 74:aircraft_hangar
-75:dontcare
 76:damaged_building
 77:facility
 79:construction_site
-82:dontcare
 83:vehicle_lot
 84:helipad
 86:storage_tank
