@@ -203,7 +203,7 @@ if __name__ == "__main__":
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
     #res = [(500,500),(400,400),(300,300),(200,200)]
-    res = [(300,300)]
+    res = [(312,180)]
 
     AUGMENT = args.augment
     SAVE_IMAGES = False
