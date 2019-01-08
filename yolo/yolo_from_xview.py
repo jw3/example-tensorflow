@@ -268,8 +268,8 @@ if __name__ == "__main__":
                     else:
                         train_chips += 1
 
-                    writer = open("labels/%s.txt" % (str(idx).rjust(6, '0')), "w")
-                    img_file = 'images/%s.png'%(str(idx).rjust(6, '0'))
+                    writer = open("labels/%s.txt" % (str(ind_chips).rjust(6, '0')), "w")
+                    img_file = 'images/%s.png'%(str(ind_chips).rjust(6, '0'))
                     Image.fromarray(image).save(img_file)
                     images_list.append(img_file)
 
