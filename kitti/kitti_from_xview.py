@@ -134,7 +134,7 @@ def write_kitti_labels(img, boxes, class_num, labels):
     Output:
         A TFExample containing encoded image data, scaled bounding boxes with classes, and other metadata.
     """
-    encoded = tfr.convertToJpeg(img)
+
 
     width = img.shape[0]
     height = img.shape[1]
@@ -187,6 +187,8 @@ if __name__ == "__main__":
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
     parser.add_argument("-x","--xview_labels", type=str, default='xview_class_labels.txt',
                         help="Path to xview class labels file")
+    parser.add_argument("-r","--scale", type=float, default=0,
+                        help="Resize chips and boxes to the given scale")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -203,7 +205,7 @@ if __name__ == "__main__":
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
     #res = [(500,500),(400,400),(300,300),(200,200)]
-    res = [(312,180)]
+    res = [(100,100)]
 
     AUGMENT = args.augment
     SAVE_IMAGES = False
@@ -233,6 +235,9 @@ if __name__ == "__main__":
             arr = wv.get_image(fname)
 
             im,box,classes_final = wv.chip_image(arr,coords[chips==name],classes[chips==name],it)
+
+            if args.scale:
+                im, box = aug.resize(im, box, args.scale)
 
             #Shuffle images & boxes all at once. Comment out the line below if you don't want to shuffle images
             im,box,classes_final = shuffle_images_and_boxes_classes(im,box,classes_final)

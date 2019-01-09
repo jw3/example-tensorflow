@@ -20,7 +20,8 @@ from PIL import Image
 import tensorflow as tf
 from PIL import Image, ImageDraw
 import skimage.filters as filters
-
+from resizeimage import resizeimage
+import cv2
 
 """
 Image augmentation utilities to be used for processing the dataset.  Importantly, these utilities modify
@@ -184,3 +185,22 @@ def draw_bboxes(img,boxes):
         for j in range(3):
             draw.rectangle(((xmin+j, ymin+j), (xmax+j, ymax+j)), outline="red")
     return source
+
+
+def resize(img, boxes, scale):
+    num, w, h, b = img.shape
+    ws = int(w * scale)
+    hs = int(h * scale)
+    images = np.zeros((num, hs, ws, b))
+    for idx, im in enumerate(img):
+        images[idx] = cv2.resize(im, (0, 0), fx=scale, fy=scale)
+
+    rboxes = {}
+    for idx, box in enumerate(boxes):
+        rb = []
+        for b in boxes[idx]:
+            xmin, ymin, xmax, ymax = b
+            rb.append([xmin * scale, ymin * scale, xmax * scale, ymax * scale])
+        rboxes[idx] = rb
+
+    return images.astype(np.uint8), rboxes

@@ -27,7 +27,7 @@ with open('val/labels/%s.txt' % args.name) as f:
         x, y, w, h = box[0], box[1], box[2] - box[0], box[3] - box[1]
 
         if w < 50 or h < 50 or w > 400 or h > 400:
-            print('w=%s h=%s' % (w, h))
+            print('%s w=%s h=%s' % (split[0], w, h))
             invalid += 1
 
         rect = patches.Rectangle((x, y), w, h ,linewidth=1,edgecolor='r',facecolor='none')
