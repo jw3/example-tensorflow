@@ -186,20 +186,27 @@ def draw_bboxes(img,boxes):
     return source
 
 
-def resize(img, boxes, scale):
+def resize(img, boxes, classes, scale, filter):
     num, w, h, b = img.shape
     ws = int(w * scale)
     hs = int(h * scale)
+
+    skips = 0
+    resizes = 0
+    rboxes = {}
     images = np.zeros((num, hs, ws, b))
     for idx, im in enumerate(img):
-        images[idx] = cv2.resize(im, (0, 0), fx=scale, fy=scale)
+        if any(c in filter for c in classes[idx]):
+            resizes += 1
+            images[idx] = cv2.resize(im, (0, 0), fx=scale, fy=scale)
+            rb = []
+            for b in boxes[idx]:
+                xmin, ymin, xmax, ymax = b
+                rb.append([xmin * scale, ymin * scale, xmax * scale, ymax * scale])
+            rboxes[idx] = rb
+        else:
+            rboxes[idx] = []
+            skips += 1
 
-    rboxes = {}
-    for idx, box in enumerate(boxes):
-        rb = []
-        for b in boxes[idx]:
-            xmin, ymin, xmax, ymax = b
-            rb.append([xmin * scale, ymin * scale, xmax * scale, ymax * scale])
-        rboxes[idx] = rb
-
+    print('%s/%s populated chips' % (resizes, skips + resizes))
     return images.astype(np.uint8), rboxes
