@@ -19,6 +19,7 @@ or
 
 Install custom CUDA and compile from source on host
 
+in addition to the pip packages in the docs `Keras-Preprocessing` was also needed
 
 https://github.com/bazelbuild/bazel/releases/download/0.21.0/bazel-0.21.0-installer-linux-x86_64.sh
 
