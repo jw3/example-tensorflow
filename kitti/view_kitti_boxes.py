@@ -7,11 +7,16 @@ import csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("type", help="Type: train or val")
-parser.add_argument("name", help="Index name, eg 000001")
+parser.add_argument("name", help="Index name, eg 1 or 212")
+parser.add_argument("-f", "--format", type=str, default='png',
+                    help="Image format by extension")
 
 args = parser.parse_args()
 
-img = Image.open('%s/images/%s.png' % (args.type, args.name))
+name = args.name.rjust(6, '0')
+fmt = args.format
+
+img = Image.open('%s/images/%s.%s' % (args.type, name, fmt))
 im = np.array(img, dtype=np.uint8)
 size = im.shape
 
@@ -21,7 +26,7 @@ ax.imshow(im)
 total=0
 invalid=0
 
-with open('%s/labels/%s.txt' % (args.type, args.name)) as f:
+with open('%s/labels/%s.txt' % (args.type, name)) as f:
     for row in csv.reader(f):
         split = row[0].split()
         box = [float(split[4]), float(split[5]), float(split[6]), float(split[7])]
