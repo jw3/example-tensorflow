@@ -177,7 +177,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("image_folder", help="Path to folder containing image chips (ie 'Image_Chips/' ")
     parser.add_argument("json_filepath", help="Filepath to GEOJSON coordinate file")
-    parser.add_argument("-t", "--test_percent", type=float, default=0.333,
+    parser.add_argument("-t", "--test_percent", type=float, default=0.1,
                         help="Percent to split into test (ie .25 = test set is 25% total)")
     parser.add_argument("-a","--augment", type=bool, default=False,
                         help="A boolean value whether or not to use augmentation")
