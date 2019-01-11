@@ -1,7 +1,7 @@
 import argparse
 import csv
 
-# python xview/map_labels.py kitti/xview_class_labels.txt > xview-labels.pbtxt
+# python xview/map_labels.py kitti/xview-labels.txt > xview-labels.pbtxt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dict", help="Path to dict file' ")

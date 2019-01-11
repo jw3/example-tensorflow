@@ -197,7 +197,7 @@ if __name__ == "__main__":
                         help="A boolean value whether or not to use augmentation")
     parser.add_argument("-c","--classes", type=str, default='',
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
-    parser.add_argument("-x","--xview_labels", type=str, default='xview_class_labels.txt',
+    parser.add_argument("-x","--xview_labels", type=str, default='xview-labels.txt',
                         help="Path to xview class labels file")
     args = parser.parse_args()
 
