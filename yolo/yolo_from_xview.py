@@ -144,7 +144,6 @@ def write_yolo_labels(img, boxes, class_num, labels):
         if not class_num[ind] in labels:
             continue
 
-
         xmin = int(box[0])
         ymin = int(box[1])
         xmax = int(box[2])

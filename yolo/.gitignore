@@ -1,0 +1,9 @@
+images
+labels
+
+*.tfrecord
+training_list.txt
+
+*.weights
+
+simrdwn
