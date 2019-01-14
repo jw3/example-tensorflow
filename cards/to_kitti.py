@@ -74,23 +74,26 @@ def augment(phase, img, boxes, idx, debug):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--classes", type=str, default='',
+                        help="List of classes to include")
     parser.add_argument("-a", "--augment", type=int, default=0,
                         help="Number of augmentation batches to generate")
     parser.add_argument("-D", "--debug", action='store_true',
                         help="Enable debug mode (draw bboxes)")
     args = parser.parse_args()
 
+    filterc = args.classes.split(',') if args.classes else []
     kitti_text = dict()
     with open('all_labels.csv') as f:
         for splits in csv.reader(f):
             fname = splits[0]
-
             clazz = splits[3]
-            x0, y0, x1, y1 = splits[4:]
+            if not filterc or clazz in filterc:
+                x0, y0, x1, y1 = splits[4:]
 
-            if fname not in kitti_text:
-                kitti_text[fname] = []
-            kitti_text[fname].append([clazz, int(x0), int(y0), int(x1), int(y1)])
+                if fname not in kitti_text:
+                    kitti_text[fname] = []
+                kitti_text[fname].append([clazz, int(x0), int(y0), int(x1), int(y1)])
 
     tot = 0
     train = 0
