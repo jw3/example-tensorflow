@@ -36,7 +36,7 @@ with open('%s/labels/%s.txt' % (args.type, name)) as f:
             print('%s w=%s h=%s' % (split[0], w, h))
             invalid += 1
 
-        rect = patches.Rectangle((x, y), w, h ,linewidth=1,edgecolor='r',facecolor='none')
+        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='b', facecolor='none')
         ax.add_patch(rect)
         total += 1
 

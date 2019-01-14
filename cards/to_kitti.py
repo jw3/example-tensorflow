@@ -44,7 +44,7 @@ seq = iaa.Sequential([
 ], random_order=True)
 
 
-def augment(img, boxes, idx, debug):
+def augment(phase, img, boxes, idx, debug):
     seq_det = seq.to_deterministic()
 
     iaboxes = []
@@ -57,12 +57,12 @@ def augment(img, boxes, idx, debug):
 
     if debug:
         img_aug = bbs.draw_on_image(img_aug, thickness=1, color=[255, 0, 0])
-        img_aug = bbs_aug.draw_on_image(img_aug, thickness=3, color=[0, 0, 255])
+        img_aug = bbs_aug.draw_on_image(img_aug, thickness=3, color=[0, 255, 0])
 
     idxstr = str(idx).rjust(6, '0')
-    Image.fromarray(img_aug).save('train/images/%s.jpg' % idxstr)
+    Image.fromarray(img_aug).save('%s/images/%s.jpg' % (phase, idxstr))
 
-    with open('train/labels/%s.txt' % idxstr, 'w') as f:
+    with open('%s/labels/%s.txt' % (phase, idxstr), 'w') as f:
         kitti_text_aug = []
         for i in range(len(bbs_aug.bounding_boxes)):
             bb = bbs_aug.bounding_boxes[i]
@@ -99,6 +99,7 @@ if __name__ == "__main__":
     for i, k in enumerate(kitti_text):
         name = k.split('.')[0]
         tot += 1
+        mode = ''
 
         isval = train * .1 > val
         if isval:
@@ -114,8 +115,8 @@ if __name__ == "__main__":
         with open('%s/labels/%s.txt' % (mode, idxname), 'w') as f:
             f.write(bbc_to_kitti_text(kitti_text[k]))
 
-        if args.augment and not isval:
+        if args.augment:
             for _ in range(args.augment):
                 tot += 1
                 img = np.array(Image.open(img_path))
-                augment(img, kitti_text[k], tot, args.debug)
+                augment(mode, img, kitti_text[k], tot, args.debug)
