@@ -189,6 +189,8 @@ if __name__ == "__main__":
                         help="Resize chips and boxes to the given scale")
     parser.add_argument("-r","--resolution", type=int, default=300,
                         help="Chip resolution, will be used for each dim")
+    parser.add_argument("-i","--images", type=str, default='',
+                        help="A list of image ids to include, empty for all; eg. 1,2,3 or 1")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -226,6 +228,13 @@ if __name__ == "__main__":
         ind_chips = 0
 
         fnames = glob.glob(args.image_folder + "*.tif")
+
+        if args.images:
+            fimages = args.images.split(',')
+            image_filter = ['%s%s.tif' % (args.image_folder, f) for f in fimages]
+            fnames = [f for f in fnames if f in image_filter]
+            print(fnames)
+
         fnames.sort()
 
         for fname in tqdm(fnames):
