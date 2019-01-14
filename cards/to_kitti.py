@@ -38,25 +38,31 @@ seq = iaa.Sequential([
     iaa.Affine(
         scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
         translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-        rotate=(-25, 25),
+        rotate=(-3, 3),
         shear=(-8, 8)
     )
 ], random_order=True)
 
 
-def augment(img, boxes, idx):
+def augment(img, boxes, idx, debug):
+    seq_det = seq.to_deterministic()
+
     iaboxes = []
     for b in boxes:
         iaboxes.append(ia.BoundingBox(x1=b[1], y1=b[2], x2=b[3], y2=b[4]))
     bbs = ia.BoundingBoxesOnImage(iaboxes, shape=img.shape)
 
-    img_aug = seq.augment_images([img])
-    bbs_aug = seq.augment_bounding_boxes([bbs])[0]
+    img_aug = seq_det.augment_images([img])[0]
+    bbs_aug = seq_det.augment_bounding_boxes([bbs])[0]
 
-    idxname = str(idx).rjust(6, '0')
-    Image.fromarray(img_aug[0]).save('train/images/%s.jpg' % idxname)
+    if debug:
+        img_aug = bbs.draw_on_image(img_aug, thickness=1, color=[255, 0, 0])
+        img_aug = bbs_aug.draw_on_image(img_aug, thickness=3, color=[0, 0, 255])
 
-    with open('train/labels/%s.txt' % idxname, 'w') as f:
+    idxstr = str(idx).rjust(6, '0')
+    Image.fromarray(img_aug).save('train/images/%s.jpg' % idxstr)
+
+    with open('train/labels/%s.txt' % idxstr, 'w') as f:
         kitti_text_aug = []
         for i in range(len(bbs_aug.bounding_boxes)):
             bb = bbs_aug.bounding_boxes[i]
@@ -68,8 +74,10 @@ def augment(img, boxes, idx):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--augment", type=bool, default=False,
-                        help="A boolean value whether or not to use augmentation")
+    parser.add_argument("-a", "--augment", type=int, default=0,
+                        help="Number of augmentation batches to generate")
+    parser.add_argument("-D", "--debug", action='store_true',
+                        help="Enable debug mode (draw bboxes)")
     args = parser.parse_args()
 
     kitti_text = dict()
@@ -107,6 +115,7 @@ if __name__ == "__main__":
             f.write(bbc_to_kitti_text(kitti_text[k]))
 
         if args.augment and not isval:
-            tot += 1
-            img = np.array(Image.open(img_path))
-            augment(img, kitti_text[k], tot)
+            for _ in range(args.augment):
+                tot += 1
+                img = np.array(Image.open(img_path))
+                augment(img, kitti_text[k], tot, args.debug)
