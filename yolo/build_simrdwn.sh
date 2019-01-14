@@ -15,6 +15,8 @@ cd ${raid}/simrdwn/docker
 
 nvidia-docker build --no-cache --build-arg http_proxy --build-arg https_proxy -t simrdwn .
 
-nvidia-docker run -d --name simrdwn_train -v ${raid}:/raid simrdwn
+nvidia-docker run -d --name simrdwn_train -v ${raid}:/raid simrdwn bash -c "while true; do sleep 1000; done"
 
-docker exec -w /raid/simrdwn/yolt simrdwn make
+docker exec -w /opt/tensorflow-models git am < ${raid}/0001-fix-exporter.patch
+
+docker exec -w /raid/simrdwn/yolt simrdwn_train make -j8
