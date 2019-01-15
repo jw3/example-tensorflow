@@ -183,6 +183,8 @@ if __name__ == "__main__":
                         help="A boolean value whether or not to use augmentation")
     parser.add_argument("-c","--classes", type=str, default='',
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
+    parser.add_argument("--class_size", type=str, default='',
+                        help="Class size to select: small | medium | large")
     parser.add_argument("-x","--xview_labels", type=str, default='xview_class_labels.txt',
                         help="Path to xview class labels file")
     parser.add_argument("-s","--scale", type=float, default=0,
@@ -196,13 +198,21 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
+    filterz = []
+    if args.class_size:
+        with open('%s.txt' % args.class_size) as f:
+            for row in csv.reader(f):
+                splits = row[0].split(":")
+                filterz.append(splits[1])
+
     filterc = args.classes.split(',') if args.classes else []
     labels = {}
     with open(args.xview_labels) as f:
         for row in csv.reader(f):
             splits = row[0].split(":")
-            if not filterc or splits[0] in filterc:
-                labels[int(splits[0])] = splits[1]
+            if not filterz or splits[1] in filterz:
+                if not filterc or splits[0] in filterc:
+                    labels[int(splits[0])] = splits[1]
 
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.

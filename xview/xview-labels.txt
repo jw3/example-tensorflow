@@ -1,6 +1,6 @@
 11:fixed_wing_aircraft
 12:small_aircraft
-13:cargo_plane
+13:passenger_cargo_plane
 15:helicopter
 17:passenger_vehicle
 18:small_car

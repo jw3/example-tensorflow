@@ -1,0 +1,14 @@
+13:passenger_cargo_plane
+40:maritime_vessel
+45:barge
+49:ferry
+51:container_ship
+52:oil_tanker
+54:tower_crane
+55:container_crane
+57:straddle_carrier
+74:aircraft_hangar
+77:facility
+79:construction_site
+83:vehicle_lot
+89:shipping_container_lot
