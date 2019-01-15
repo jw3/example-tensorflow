@@ -190,31 +190,51 @@ if __name__ == "__main__":
     parser.add_argument("json_filepath", help="Filepath to GEOJSON coordinate file")
     parser.add_argument("-t", "--test_percent", type=float, default=0.333,
                         help="Percent to split into test (ie .25 = test set is 25% total)")
-    parser.add_argument("-s", "--suffix", type=str, default='t1',
-                        help="Output TFRecord suffix. Default suffix 't1' will output 'xview_train_t1.record' and 'xview_test_t1.record'")
     parser.add_argument("-a","--augment", type=bool, default=False,
                         help="A boolean value whether or not to use augmentation")
     parser.add_argument("-c","--classes", type=str, default='',
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
-    parser.add_argument("-x","--xview_labels", type=str, default='xview-labels.txt',
+    parser.add_argument("--class_size", type=str, default='',
+                        help="Class size to select: small | medium | large")
+    parser.add_argument("-x","--xview_labels", type=str, default='xview-yolo-labels.txt',
                         help="Path to xview class labels file")
+    parser.add_argument("-s","--scale", type=float, default=0,
+                        help="Resize chips and boxes to the given scale")
+    parser.add_argument("-r","--resolution", type=int, default=544,
+                        help="Chip resolution, will be used for each dim")
+    parser.add_argument("-i","--images", type=str, default='',
+                        help="A list of image ids to include, empty for all; eg. 1,2,3 or 1")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
+
+    lookup = {}
+    with open('xview-labels.txt') as f:
+        for row in csv.reader(f):
+            splits = row[0].split(":")
+            lookup[splits[1]] = splits[0]
+
+    filterz = []
+    if args.class_size:
+        with open('%s.txt' % args.class_size) as f:
+            for row in csv.reader(f):
+                splits = row[0].split(":")
+                filterz.append(lookup[splits[1]])
 
     filterc = args.classes.split(',') if args.classes else []
     labels = {}
     with open(args.xview_labels) as f:
         for row in csv.reader(f):
             splits = row[0].split(":")
-            if not filterc or splits[0] in filterc:
-                labels[int(splits[0])] = splits[1]
+            if not filterz or splits[0] in filterz:
+                if not filterc or splits[0] in filterc:
+                    labels[int(splits[0])] = splits[1]
 
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
     #res = [(500,500),(400,400),(300,300),(200,200)]
-    res = [(416,416)]
+    res = [(args.resolution, args.resolution)]
 
     AUGMENT = args.augment
     SAVE_IMAGES = False
@@ -236,6 +256,12 @@ if __name__ == "__main__":
         ind_chips = 0
 
         fnames = glob.glob(args.image_folder + "*.tif")
+
+        if args.images:
+            fimages = args.images.split(',')
+            image_filter = ['%s%s.tif' % (args.image_folder, f) for f in fimages]
+            fnames = [f for f in fnames if f in image_filter]
+
         fnames.sort()
 
         for fname in tqdm(fnames):
@@ -245,6 +271,9 @@ if __name__ == "__main__":
             arr = wv.get_image(fname)
 
             im,box,classes_final = wv.chip_image(arr,coords[chips==name],classes[chips==name],it)
+
+            if args.scale:
+                im, box = aug.resize(im, box, classes_final, args.scale,labels)
 
             #Shuffle images & boxes all at once. Comment out the line below if you don't want to shuffle images
             im,box,classes_final = shuffle_images_and_boxes_classes(im,box,classes_final)

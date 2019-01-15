@@ -7,21 +7,22 @@ import csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Index name, eg 000001")
-
 args = parser.parse_args()
 
-img = Image.open('images/%s.png' % args.name)
+name = args.name.rjust(6, '0')
+
+img = Image.open('images/%s.png' % name)
 im = np.array(img, dtype=np.uint8)
 size = im.shape
 
 fig,ax = plt.subplots(1)
 ax.imshow(im)
 
-with open('labels/%s.txt' % args.name) as f:
+with open('labels/%s.txt' % name) as f:
     for row in csv.reader(f):
         split = row[0].split()
         box = [float(split[1]), float(split[2]), float(split[3]), float(split[4])]
-        x,y,w,h = box
+        x, y, w, h = box
         dw = 1./size[0]
         dh = 1./size[1]
 
