@@ -32,11 +32,13 @@ with open('%s/labels/%s.txt' % (args.type, name)) as f:
         box = [float(split[4]), float(split[5]), float(split[6]), float(split[7])]
         x, y, w, h = box[0], box[1], box[2] - box[0], box[3] - box[1]
 
+        color = 'g'
         if w < 50 or h < 50 or w > 400 or h > 400:
             print('%s w=%s h=%s' % (split[0], w, h))
             invalid += 1
+            color = 'r'
 
-        rect = patches.Rectangle((x, y), w, h, linewidth=3, edgecolor='b', facecolor='none')
+        rect = patches.Rectangle((x, y), w, h, linewidth=2, edgecolor=color, facecolor='none')
         ax.add_patch(rect)
         total += 1
 
