@@ -179,8 +179,8 @@ if __name__ == "__main__":
     parser.add_argument("json_filepath", help="Filepath to GEOJSON coordinate file")
     parser.add_argument("-t", "--test_percent", type=float, default=0.1,
                         help="Percent to split into test (ie .25 = test set is 25% total)")
-    parser.add_argument("-a","--augment", type=bool, default=False,
-                        help="A boolean value whether or not to use augmentation")
+    parser.add_argument("-a","--augment", type=int, default=0,
+                        help="Number of augmentation batches to generate")
     parser.add_argument("-c","--classes", type=str, default='',
                         help="A list of class ids to include; empty for all; eg. 1,2,3 or 1")
     parser.add_argument("--class_size", type=str, default='',
@@ -193,6 +193,8 @@ if __name__ == "__main__":
                         help="Chip resolution, will be used for each dim")
     parser.add_argument("-i","--images", type=str, default='',
                         help="A list of image ids to include, empty for all; eg. 1,2,3 or 1")
+    parser.add_argument("-D", "--debug", action='store_true',
+                        help="Enable debug mode (draw bboxes)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -219,8 +221,6 @@ if __name__ == "__main__":
     #res = [(500,500),(400,400),(300,300),(200,200)]
     res = [(args.resolution, args.resolution)]
 
-    AUGMENT = args.augment
-    SAVE_IMAGES = False
     images = {}
     boxes = {}
     train_chips = 0
@@ -267,10 +267,6 @@ if __name__ == "__main__":
 
                 tf_example = write_kitti_labels(image,box[idx],classes_final[idx],labels)
 
-                #Check to make sure that the TF_Example has valid bounding boxes.
-                #If there are no valid bounding boxes, then don't save the image to the TFRecord.
-                #float_list_value = tf_example.features.feature['image/object/bbox/xmin'].float_list.value
-
                 if (ind_chips < max_chips_per_res and tf_example):
                     tot_box+=tf_example.count('\n')
 
@@ -280,57 +276,18 @@ if __name__ == "__main__":
                         train_chips += 1
 
                     prefix = "val" if istest else "train"
-                    writer = open("%s/labels/%s.txt" % (prefix, str(ind_chips).rjust(6, '0')), "w")
                     Image.fromarray(image).save('%s/images/%s.png'%(prefix, str(ind_chips).rjust(6, '0')))
-
+                    writer = open("%s/labels/%s.txt" % (prefix, str(ind_chips).rjust(6, '0')), "w")
                     writer.write(tf_example)
+                    writer.close()
 
                     ind_chips +=1
 
+                    if args.augment:
+                        for _ in range(args.augment):
+                            ind_chips +=1
+                            augment(prefix, image, tf_example, ind_chips, args.debug)
 
-                    #Make augmentation probability proportional to chip size.  Lower chip size = less chance.
-                    #This makes the chip-size imbalance less severe.
-                    prob = np.random.randint(0,np.max(res))
-                    #for 200x200: p(augment) = 200/500 ; for 300x300: p(augment) = 300/500 ...
-
-                    if AUGMENT and prob < it[0]:
-
-                        for extra in range(3):
-                            center = np.array([int(image.shape[0]/2),int(image.shape[1]/2)])
-                            deg = np.random.randint(-10,10)
-                            #deg = np.random.normal()*30
-                            newimg = aug.salt_and_pepper(aug.gaussian_blur(image))
-
-                            #.3 probability for each of shifting vs rotating vs shift(rotate(image))
-                            p = np.random.randint(0,3)
-                            if p == 0:
-                                newimg,nb = aug.shift_image(newimg,box[idx])
-                            elif p == 1:
-                                newimg,nb = aug.rotate_image_and_boxes(newimg,deg,center,box[idx])
-                            elif p == 2:
-                                newimg,nb = aug.rotate_image_and_boxes(newimg,deg,center,box[idx])
-                                newimg,nb = aug.shift_image(newimg,nb)
-
-
-                            newimg = (newimg).astype(np.uint8)
-
-                            if idx%1000 == 0 and SAVE_IMAGES:
-                                Image.fromarray(newimg).save('process/img_%s_%s_%s.png'%(name,extra,it[0]))
-
-                            if len(nb) > 0:
-                                tf_example = write_kitti_labels(newimg,nb,classes_final[idx],labels)
-                                writer.write(tf_example.SerializeToString())
-
-                                #Don't count augmented chips for chip indices
-                                if idx < split_ind:
-                                    test_chips += 1
-                                else:
-                                    train_chips+=1
-                            else:
-                                if SAVE_IMAGES:
-                                    aug.draw_bboxes(newimg,nb).save('process/img_nobox_%s_%s_%s.png'%(name,extra,it[0]))
-
-                    writer.close()
                 else:
                     skip_chips += 1
 
