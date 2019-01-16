@@ -362,6 +362,7 @@ if __name__ == "__main__":
     logging.info("saved: %d train chips" % train_chips)
     logging.info("saved: %d test chips" % test_chips)
 
+    final_classes_map = []
     logging.info("Generating xview_yolo.pbtxt")
     with open('xview_yolo.pbtxt', 'w') as f:
         idx = 0
@@ -371,6 +372,13 @@ if __name__ == "__main__":
                 name = labels[k]
                 logging.info(' {:>3} {:25}{:>5}'.format(k, name, v))
                 f.write('item {{\n  id: {}\n  name: {!r}\n}}\n'.format(idx, name))
+                final_classes_map.append(name)
+
+    with open('rewrite_classes.sh', 'w') as f:
+        f.write('''#!/bin/bash\n''')
+        for i, c in enumerate(final_classes_map):
+            f.write('sed -i s#{}#{}#g labels/*\n'.format(c, i))
+    os.chmod('rewrite_classes.sh', 0o755)
 
     logging.info("Generating training_list.txt")
     with open('training_list.txt', 'w') as f:
