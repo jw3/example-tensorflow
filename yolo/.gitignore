@@ -7,3 +7,5 @@ training_list.txt
 *.weights
 
 simrdwn
+
+*.pbtxt
