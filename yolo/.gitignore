@@ -9,4 +9,4 @@ training_list.txt
 simrdwn
 
 *.pbtxt
-rewrite_classes.sh
+rewrite_labels.sh

@@ -374,11 +374,12 @@ if __name__ == "__main__":
                 f.write('item {{\n  id: {}\n  name: {!r}\n}}\n'.format(idx, name))
                 final_classes_map.append(name)
 
-    with open('rewrite_classes.sh', 'w') as f:
+    logging.info("Generating rewrite_labels.sh")
+    with open('rewrite_labels.sh', 'w') as f:
         f.write('''#!/bin/bash\n''')
         for i, c in enumerate(final_classes_map):
             f.write('sed -i s#{}#{}#g labels/*\n'.format(c, i))
-    os.chmod('rewrite_classes.sh', 0o755)
+    os.chmod('rewrite_labels.sh', 0o755)
 
     logging.info("Generating training_list.txt")
     with open('training_list.txt', 'w') as f:
