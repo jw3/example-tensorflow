@@ -2,7 +2,7 @@
 
 # https://github.com/CosmiQ/simrdwn#2-train
 
-cp training_list.txt xview.pbtxt /raid/simrdwn/data
+cp training_list.txt xview.pbtxt xview.tfrecord /raid/simrdwn/data
 
 # xView small_car search
 python /raid/simrdwn/core/simrdwn.py \

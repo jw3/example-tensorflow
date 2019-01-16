@@ -65,10 +65,7 @@ def show_record(filenames):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--record",
-        type=str,
-        default="train.record",
-        help="The record file."
+        "record", type=str, default="train.record", help="The record file."
     )
     args = parser.parse_args()
     show_record(args.record)
