@@ -178,6 +178,11 @@ def write_yolo_labels(img, boxes, class_num, labels):
 
     return '\n'.join(yolo_text)
 
+
+def vk(vv, dd):
+    return next(key for key, value in dd.items() if value == vv)
+
+
 '''
 Datasets
 _multires: multiple resolutions. Currently [(500,500),(400,400),(300,300),(200,200)]
@@ -213,7 +218,7 @@ if __name__ == "__main__":
     with open('xview-labels.txt') as f:
         for row in csv.reader(f):
             splits = row[0].split(":")
-            lookup[splits[1]] = splits[0]
+            lookup[splits[1]] = int(splits[0])
 
     filterz = []
     if args.class_size:
@@ -229,7 +234,7 @@ if __name__ == "__main__":
             splits = row[0].split(":")
             if not filterz or splits[0] in filterz:
                 if not filterc or splits[0] in filterc:
-                    labels[int(splits[0])] = splits[1]
+                    labels[int(splits[0])] = int(splits[1])
 
     #resolutions should be largest -> smallest.  We take the number of chips in the largest resolution and make
     #sure all future resolutions have less than 1.5times that number of images to prevent chip size imbalance.
@@ -244,6 +249,7 @@ if __name__ == "__main__":
     test_chips = 0
     skip_chips = 0
     images_list = []
+    classes_actual = {}
 
     #Parameters
     max_chips_per_res = 100000
@@ -271,6 +277,9 @@ if __name__ == "__main__":
             arr = wv.get_image(fname)
 
             im,box,classes_final = wv.chip_image(arr,coords[chips==name],classes[chips==name],it)
+            for _, v in classes_final.items():
+                for c in v:
+                    classes_actual[c] = classes_actual.get(c, 0) + 1
 
             if args.scale:
                 im, box = aug.resize(im, box, classes_final, args.scale,labels)
@@ -360,8 +369,19 @@ if __name__ == "__main__":
         logging.info("Chips: %d" % ind_chips)
         logging.info("Skipped Chips: %d" % skip_chips)
 
-    with open('training_list.txt', 'w') as f:
-        f.write('\n'.join(images_list))
-
     logging.info("saved: %d train chips" % train_chips)
     logging.info("saved: %d test chips" % test_chips)
+
+    logging.info("Generating xview_yolo.pbtxt")
+    with open('xview_yolo.pbtxt', 'w') as f:
+        idx = 0
+        for k, v in classes_actual.items():
+            if k:
+                idx += 1
+                name = vk(k, lookup)
+                logging.info('  {:>5} {:25}{:>5}'.format(labels[k], name, v))
+                f.write('item {{\n  id: {}\n  name: {!r}\n}}\n'.format(idx, name))
+
+    logging.info("Generating training_list.txt")
+    with open('training_list.txt', 'w') as f:
+        f.write('\n'.join(images_list))
