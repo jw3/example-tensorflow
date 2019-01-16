@@ -269,7 +269,7 @@ if __name__ == "__main__":
             im,box,classes_final = wv.chip_image(arr,coords[chips==name],classes[chips==name],it)
             for _, v in classes_final.items():
                 for c in v:
-                    classes_actual[c] = classes_actual.get(c, 0) + 1
+                    classes_actual[int(c)] = classes_actual.get(c, 0) + 1
 
             if args.scale:
                 im, box = aug.resize(im, box, classes_final, args.scale,labels)
@@ -366,10 +366,10 @@ if __name__ == "__main__":
     with open('xview_yolo.pbtxt', 'w') as f:
         idx = 0
         for k, v in classes_actual.items():
-            if k:
+            if k in labels:
                 idx += 1
                 name = labels[k]
-                logging.info('  {:25}{:>5}'.format(name, v))
+                logging.info(' {:>3} {:25}{:>5}'.format(k, name, v))
                 f.write('item {{\n  id: {}\n  name: {!r}\n}}\n'.format(idx, name))
 
     logging.info("Generating training_list.txt")
