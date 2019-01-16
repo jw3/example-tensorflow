@@ -363,8 +363,8 @@ if __name__ == "__main__":
     logging.info("saved: %d test chips" % test_chips)
 
     final_classes_map = []
-    logging.info("Generating xview_yolo.pbtxt")
-    with open('xview_yolo.pbtxt', 'w') as f:
+    logging.info("Generating xview.pbtxt")
+    with open('xview.pbtxt', 'w') as f:
         idx = 0
         for k, v in classes_actual.items():
             if k in labels:
