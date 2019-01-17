@@ -35,3 +35,5 @@ ssd() {
         --batch_size 16 \
         --gpu 0
 }
+
+"$@"
