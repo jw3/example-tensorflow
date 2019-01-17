@@ -13,3 +13,24 @@ DetectNet
 8. Play around with mean subraction
 9. Kitti formatted data
     - `class 0 0 0 xmin ymin xmax ymax 0 0 0 0 0 0 0`
+
+
+### DIGITS configuration
+
+
+#### with minio
+
+Have to adjust the boto library configuration to use the non-subdomain s3 urls
+
+Mount this as `/etc/boto.cfg`
+
+``` 
+[s3]
+calling_format=boto.s3.connection.OrdinaryCallingFormat
+```
+
+#### image/label formats
+
+- https://github.com/NVIDIA/DIGITS/issues/992
+- https://github.com/NVIDIA/DIGITS/blob/master/docs/ImageFolderFormat.md
+  - PNG, JPEG, BMP and PPM
