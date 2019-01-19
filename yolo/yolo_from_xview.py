@@ -298,7 +298,7 @@ if __name__ == "__main__":
                     writer = open("labels/%s.txt" % (str(ind_chips).rjust(6, '0')), "w")
                     img_file = 'images/%s.png'%(str(ind_chips).rjust(6, '0'))
                     Image.fromarray(image).save(img_file)
-                    images_list.append(os.path.join('/raid/images', img_file))
+                    images_list.append(os.path.join('/raid', img_file))
 
                     writer.write(tf_example)
 
